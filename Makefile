@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-OUT = zssfs
+OUT = zsfs
 
 build: zssfs.c 
 	$(CC) zssfs.c -o $(OUT) $(CFLAGS)  `pkg-config fuse --cflags --libs`
