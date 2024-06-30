@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static int do_getattr(const char *restrict path, struct stat *restrict st) {
+static int z_getattr(const char *restrict path, struct stat *restrict st) {
 
   // fill stat with info about file
   st->st_gid = getgid();
@@ -26,9 +26,9 @@ static int do_getattr(const char *restrict path, struct stat *restrict st) {
   return 0;
 }
 
-static int do_readdir(const char *restrict path, void *buf,
-                      fuse_fill_dir_t filler, off_t offset,
-                      struct fuse_file_info *fi) {
+static int z_readdir(const char *restrict path, void *buf,
+                     fuse_fill_dir_t filler, off_t offset,
+                     struct fuse_file_info *fi) {
 
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
@@ -42,8 +42,8 @@ static int do_readdir(const char *restrict path, void *buf,
   return 0;
 }
 
-static int do_read(const char *restrict path, char *buffer, size_t size,
-                   off_t offset, struct fuse_file_info *fi) {
+static int z_read(const char *restrict path, char *buffer, size_t size,
+                  off_t offset, struct fuse_file_info *fi) {
 
   char *file1 = "this is file one";
   char *file2 = "this is file two";
@@ -63,6 +63,6 @@ static int do_read(const char *restrict path, char *buffer, size_t size,
 }
 
 struct fuse_operations op = {
-    .getattr = do_getattr, .readdir = do_readdir, .read = do_read};
+    .getattr = z_getattr, .readdir = z_readdir, .read = z_read};
 
 int main(int argc, char **argv) { return fuse_main(argc, argv, &op, NULL); }
