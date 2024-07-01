@@ -3,17 +3,21 @@
 #include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 FILE *super_fd, *file_fd;
+Super_head superHead;
+Super_base superBase;
+Fs FS;
 
 int main(int argc, char **argv) {
 
   // arg handling
   // format for commands
-  // zssfs <method> arguments
+  // zssfs flags <MountPoint>
   // use zhelp for help
 
   int c;
@@ -28,7 +32,7 @@ int main(int argc, char **argv) {
       break;
     case 'f':
       if ((file_fd = fopen(optarg, "rb+")) == NULL) {
-        perror("unable to open super: ");
+        perror("unable to open fs file: ");
         return 1;
       }
       break;
@@ -56,65 +60,22 @@ int main(int argc, char **argv) {
   // extract the file name and pass onto
   char *new_argv[] = {argv[0], argv[optind]};
 
+  // init fs super structures
+  fread(&superBase, sizeof(struct Super_head), 1, super_fd);
+
+  // init the base
+  // // alloc space and init to 0
+  superBase.inode_data_bitmap = (int *)calloc(superHead.size, sizeof(int));
+  superBase.free_bitmap = (int *)calloc(superHead.size, sizeof(int));
+
+  // read state from file
+  for (int i = 0; i < superHead.size; i++) {
+    fread(&superBase.inode_data_bitmap + i, sizeof(int), 1, super_fd);
+    fread(&superBase.free_bitmap + (i + superHead.size), sizeof(int), 1,
+          super_fd);
+  }
+
   return fuse_main(2, new_argv, &op, NULL);
-}
-
-static int z_getattr(const char *restrict path, struct stat *restrict st) {
-
-  // fill stat with info about file
-  st->st_gid = getgid();
-  st->st_uid = getuid();
-  st->st_atime = time(NULL);
-  st->st_mtime = time(NULL);
-
-  // for now only implementing two files
-  // will work on that later
-  if (strcmp(path, "/") == 0) {
-    st->st_mode = S_IFDIR | 0755;
-    st->st_nlink = 2;
-  } else {
-    st->st_mode = S_IFREG | 0644;
-    st->st_nlink = 1;
-    st->st_size = 1024;
-  }
-
-  return 0;
-}
-
-static int z_readdir(const char *restrict path, void *buf,
-                     fuse_fill_dir_t filler, off_t offset,
-                     struct fuse_file_info *fi) {
-
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
-
-  if (strcmp(path, "/") == 0) {
-
-    filler(buf, "file1", NULL, 0);
-    filler(buf, "file2", NULL, 0);
-  }
-
-  return 0;
-}
-
-static int z_read(const char *restrict path, char *buffer, size_t size,
-                  off_t offset, struct fuse_file_info *fi) {
-
-  char *file1 = "this is file one";
-  char *file2 = "this is file two";
-
-  if (strcmp(path, "/file1") == 0) {
-
-    memcpy(buffer, file1 + offset, size);
-    return strlen(file1) - offset;
-
-  } else if (strcmp(path, "file2") == 0) {
-
-    memcpy(buffer, file2 + offset, size);
-    return strlen(file2) - offset;
-  }
-
-  return -1;
 }
 
 void umount_handler(int code) {
