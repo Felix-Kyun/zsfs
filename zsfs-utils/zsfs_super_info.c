@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// fs struct
+// fs struct (32 + 4) 36b
 typedef struct Super_head {
   char name[32]; // max 31 char file system name
   unsigned int size;
