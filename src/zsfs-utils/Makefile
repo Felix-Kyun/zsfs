@@ -1,9 +1,21 @@
 CC = gcc
 CFLAGS = -Wall
+INC_SRC = ../log.c
+SRC_DIR = .
+BIN_DIR = ../../bin
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+TARGETS = $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%,$(SOURCES))
 
-allocator: 
-	$(CC) zsfs_super_alloc.c -o ../../bin/zsfs_super_allocator $(CFLAGS)  
-	$(CC) zsfs_fs_allocator.c -o ../../bin/zsfs_fs_allocator $(CFLAGS)  
+$(BIN_DIR):
+	@mkdir -p $(BIN_DIR)
 
-info: 
-	$(CC) zsfs_super_info.c -o ../../bin/zsfs_super_info $(CFLAGS)  
+$(BIN_DIR)/%: $(SRC_DIR)/%.c
+	@echo "Building " $(patsubst $(BIN_DIR)/%,%,$@)
+	@$(CC) -o $@ $< $(CFLAGS) $(INC_SRC)
+
+all: $(TARGETS)
+
+clean: 
+	@rm -rf $(BiN_DIR)/*
+
+.PHONY: all clean

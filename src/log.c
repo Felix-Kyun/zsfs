@@ -34,7 +34,6 @@ void Log(const LogLevel lv, const char *fmt, ...) {
   char formatted_time[128];
   strftime(formatted_time, 128, "%d-%m-%Y %H:%M:%S", t);
 
-  printf("");
   printf("%s[%s] %s ", color_code[lv], formatted_time, level_name[lv]);
 
   // handle varg

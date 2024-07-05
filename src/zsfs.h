@@ -121,9 +121,6 @@ int read_data(inode i, size_t size, off_t offset);
 int read_inode_from_path(const char* path, inode *i);
 
 // write stuff
-// write a inode to fs
-int read_inode(inode i);
-
 
 // file system access methods
 
