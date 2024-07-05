@@ -1,11 +1,7 @@
 #include "../../include/log/log.h"
+#include "../types.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-struct superBase {
-  char name[32]; // max 31 char file system name
-  unsigned int size;
-};
 
 // usage: toogle_block_state ./super.bin 100
 int main(int argc, char **argv) {
@@ -20,9 +16,9 @@ int main(int argc, char **argv) {
   FILE *super_fd = fopen(argv[1], "rb+");
   rewind(super_fd);
 
-  struct superBase base;
+  Super_head base;
   info("Reading superBlock");
-  fread(&base, sizeof(struct superBase), 1, super_fd);
+  fread(&base, sizeof(Super_head), 1, super_fd);
 
   if (base.size < atoi(argv[2])) {
     Log(LOG_ERROR, "Requested block %d but fs max is %d", atoi(argv[2]),

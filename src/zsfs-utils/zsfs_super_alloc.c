@@ -1,15 +1,10 @@
 // Felix
 // ./zsfs_super_alloc ./path/to/super.bin name size
 
+#include "../types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// fs super struct
-typedef struct Super_head {
-  char name[32]; // max 31 char file system name
-  unsigned int size;
-} Super_head;
 
 // typedef struct Super_base {
 //   int *inode_data_bitmap;

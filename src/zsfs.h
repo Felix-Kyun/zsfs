@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -16,23 +15,6 @@
 
 #define BLOCK_SIZE 1024
 
-// filesystem structures
-typedef struct Super_head {
-  char name[32]; // max 31 char file system name
-  unsigned int size;
-} Super_head;
-
-// super head will me constructed according to the size in the size;
-typedef struct Super_base {
-   int *inode_data_bitmap;
-   int *free_bitmap;
-} Super_base;
-
-
-typedef struct Fs {
-  unsigned char *raw_data;
-} Fs;
-
 /*
  * the things we need now are
  * [x] inode
@@ -40,55 +22,6 @@ typedef struct Fs {
  * [ ] methods to read data from fs according to inode
  * [ ] dentry in inodes (i have no idea how to store dentry as its variable length)
  */
-
-// inode struct 
-// contains standard members + some internal members which is used inside zsfs
-// if the inode is a dir then dentry is used which is written after inode in the space allocated to inode 
-// |--block-||--------||--------||--------||--------||-------| 
-// +---------------------------------------------------------|
-// | inode block                                             |
-// | +--------------+---------------------------------+      |
-// | | inode struct | dentry_entry[inode.dentry_size] |      |
-// | +--------------+---------------------------------+      |
-// +---------------------------------------------------------|
-// some of the members are disabled until implemeted
-// till then it with be calculated according to the user and their request
-// with getuid(), getgid(), time(NULL)
-typedef struct inode {
-
-  // standard members 
-  mode_t mode; 
-  nlink_t nlink;
-  // uid_t user_id;
-  // gid_t group_id;
-  blksize_t st_blksize; 
-  blkcnt_t  st_blocks;  
-  // time_t atime;
-  // time_t mtime;
-  // time_t ctime;
-
-  // internal code 
-  inode_id_t inode_id;
-  // uchar is_dir;
-  count_t children_count;
-  count_t inode_size;
-  count_t blocks_used;
-  count_t dentry_size;
-
-  // actual data info
-  blkid_t data_blk;
-  blkcount_t blk_count;
-
-} inode;
-
-typedef struct dentry_item {
-  char name[32];
-  int inode_id;
-} dentry_item;
-
-typedef struct dentry {
-  dentry_item *entry;
-} dentry;
 
 // find a free block 
 // finds the first free block 

@@ -1,19 +1,9 @@
 // Felix
 // ./zsfs_super_info ./path/to/super.bin
 
+#include "../types.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-// fs struct (32 + 4) 36b
-typedef struct Super_head {
-  char name[32]; // max 31 char file system name
-  unsigned int size;
-} Super_head;
-
-typedef struct Super_base {
-  int *inode_data_bitmap;
-  int *free_bitmap;
-} Super_base;
 
 FILE *super_fd;
 Super_head superHead;
