@@ -1,6 +1,7 @@
 #include "zsfs.h"
 #include <fuse/fuse.h>
 #include <getopt.h>
+#include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,4 +93,47 @@ void zhelp() {
   char *help = "impl help";
 
   puts(help);
+}
+
+// INFO: perf can be improved by skipping the already searched blocks
+blkid_t find_free_blk(size_t size) {
+
+  blkcount_t required_count = ceil(((float)size) / BLOCK_SIZE);
+
+  // navigate to super base
+  fseek(super_fd, sizeof(struct Super_head), SEEK_SET);
+
+  // loop over free_bitmap till the requested size is found
+  int current_bit_state;
+  int saved_cursor_position;
+  for (int i = 0; i < superHead.size; i++) {
+    // read the current bitmap state
+    fread(&current_bit_state, sizeof(int), 1, super_fd);
+
+    if (current_bit_state == 0) {
+
+      // save current location
+      saved_cursor_position = ftell(super_fd);
+
+      // check for consecutive bits
+      int longest_hit = 1;
+      int inner_bit_state;
+      for (int i = saved_cursor_position; i < superHead.size; i++) {
+        fread(&inner_bit_state, sizeof(int), 1, super_fd);
+
+        // if 0 then inc longest_hit else break;
+        if (inner_bit_state == 0)
+          longest_hit++;
+        else {
+          fseek(super_fd, saved_cursor_position, SEEK_SET);
+          break;
+        }
+      }
+
+      if (longest_hit >= size)
+        return current_bit_state;
+    }
+  }
+
+  return 0;
 }
