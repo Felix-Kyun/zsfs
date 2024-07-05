@@ -1,5 +1,6 @@
-mnt/
+bin/*
 test/*
-bin/
-super.zsfs
+mnt/
+!test/.gitkeep
+!bin/.gitkeep
 dev.notes
