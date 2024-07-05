@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-INC_SRC = ../log.c
+INC_SRC = ../log.c ../_zsfs_impl.c
 SRC_DIR = .
 BIN_DIR = ../../bin
 SOURCES = $(wildcard $(SRC_DIR)/*.c)

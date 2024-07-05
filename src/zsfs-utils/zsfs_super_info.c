@@ -2,12 +2,9 @@
 // ./zsfs_super_info ./path/to/super.bin
 
 #include "../types.h"
+#include "../zsfs.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-FILE *super_fd;
-Super_head superHead;
-Super_base superBase;
 
 int main(int argc, char **argv) {
 

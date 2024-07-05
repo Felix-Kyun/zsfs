@@ -1,4 +1,5 @@
 #include "zsfs.h"
+#include "./_zsfs_impl.c"
 #include <fuse/fuse.h>
 #include <getopt.h>
 #include <math.h>
@@ -8,11 +9,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-FILE *super_fd, *file_fd;
-Super_head superHead;
-Super_base superBase;
-Fs FS;
 
 int main(int argc, char **argv) {
 
@@ -26,16 +22,10 @@ int main(int argc, char **argv) {
   while ((c = getopt(argc, argv, "hs:f:")) != -1) {
     switch (c) {
     case 's':
-      if ((super_fd = fopen(optarg, "rb+")) == NULL) {
-        perror("unable to open super: ");
-        return 1;
-      }
+      open_super(optarg);
       break;
     case 'f':
-      if ((file_fd = fopen(optarg, "rb+")) == NULL) {
-        perror("unable to open fs file: ");
-        return 1;
-      }
+      open_fs(optarg);
       break;
     case '?':
     case 'h':
@@ -62,19 +52,10 @@ int main(int argc, char **argv) {
   char *new_argv[] = {argv[0], argv[optind]};
 
   // init fs super structures
-  fread(&superBase, sizeof(struct Super_head), 1, super_fd);
+  read_super_head();
 
   // init the base
-  // // alloc space and init to 0
-  superBase.inode_data_bitmap = (int *)calloc(superHead.size, sizeof(int));
-  superBase.free_bitmap = (int *)calloc(superHead.size, sizeof(int));
-
-  // read state from file
-  for (int i = 0; i < superHead.size; i++) {
-    fread(&superBase.inode_data_bitmap + i, sizeof(int), 1, super_fd);
-    fread(&superBase.free_bitmap + (i + superHead.size), sizeof(int), 1,
-          super_fd);
-  }
+  read_super_base();
 
   return fuse_main(2, new_argv, &op, NULL);
 }

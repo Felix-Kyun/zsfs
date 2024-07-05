@@ -1,6 +1,7 @@
 #ifndef __ZSFS_INTERNAL_TYPES_H
 #define __ZSFS_INTERNAL_TYPES_H
 
+#include <stdint.h>
 #include <sys/types.h>
 
 typedef unsigned int inode_id_t;
@@ -10,9 +11,13 @@ typedef unsigned int blkid_t;
 typedef unsigned int blkcount_t;
 
 // filesystem structures
+// super head 64b
+// padding is added to make it 64 bytes
 typedef struct Super_head {
   char name[32]; // max 31 char file system name
   count_t size;
+  count_t block_size;
+  uchar __Padding[24]; // adjust it accordingly to align to 64 bytes
 } Super_head;
 
 // super head will me constructed according to the size in the size;

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-FILE *fs_fd;
+#include "../zsfs.h"
 
 // for now hardcoded block size
 // 1024 means 4 char or an int

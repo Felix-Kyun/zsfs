@@ -11,8 +11,7 @@
 //   int *free_bitmap;
 // } Super_base;
 
-FILE *super_fd;
-Super_head superHead;
+#include "../zsfs.h"
 
 int main(int argc, char **argv) {
 
