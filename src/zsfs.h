@@ -53,6 +53,7 @@ int write_free_state(blkid_t block_id, uint state);
 
 // macro to go to the start of super base
 #define goto_base_start() fseek(super_fd, sizeof(struct Super_head), SEEK_SET)
+#define goto_inode_data_bmap() fseek(super_fd, sizeof(struct Super_head) + (sizeof(uint) * superHead.size), SEEK_SET)
 
 // used to navigate the free bitmap
 int goto_free_bitmap(blkid_t block_id);
@@ -61,11 +62,20 @@ int goto_free_bitmap(blkid_t block_id);
 // #define get_block_size() superHead.block_size
 count_t get_block_size();
 
+#define BLOCK_COUNT superHead.size
+#define FS_SIZE superHead.size
+
 // find a free block 
 // finds the first free block 
 // whose consecutive blocks are enough to store $size
 // uses first fit algo
 blkid_t find_free_blk(size_t size);
+
+// sets a blocks as either data block (0) or inode block(1)
+int write_inode_or_data(blkid_t block_id, uint mode);
+
+// query if a block is inode or data 
+uint read_inode_or_data(blkid_t block_id);
 
 // methods to read the inode 
 
@@ -92,6 +102,13 @@ int read_data(inode i, size_t size, off_t offset);
 int read_inode_from_path(const char* path, inode *i);
 
 // write stuff
+
+// writes an inode to the fs
+// INFO: for writing root inode use write_root_inode();
+inode_id_t write_inode(inode i);
+
+// writes a root inode
+int write_root_inode(inode i);
 
 // file system access methods
 

@@ -61,18 +61,13 @@ int read_free_state(blkid_t block_id) {
 
   goto_base_start();
 
-  for (int i = 0; i < superHead.size; i++) {
-    if (i == block_id) {
+  // nav
+  fseek(super_fd, sizeof(uint) * block_id, SEEK_CUR);
 
-      uint bit_state;
-      fread(&bit_state, sizeof(uint), 1, super_fd);
+  uint bit_state;
+  fread(&bit_state, sizeof(uint), 1, super_fd);
 
-      return bit_state;
-    } else
-      fseek(super_fd, sizeof(uint), SEEK_CUR);
-  }
-
-  return -1;
+  return bit_state;
 }
 
 int goto_free_bitmap(blkid_t block_id) {
@@ -115,4 +110,64 @@ void close_fd() {
     fclose(fs_fd);
     fs_fd = NULL;
   }
+}
+
+blkid_t find_free_blk(size_t size) {
+
+  blkcount_t longest_hit = 0;
+  blkid_t start_block = 0;
+  for (int i = 0; i < FS_SIZE; i++) {
+    if (read_free_state(i) == 0) {
+      if (longest_hit == 0)
+        start_block = i;
+      longest_hit++;
+    } else {
+      longest_hit = 0;
+    }
+
+    if (longest_hit * BLOCK_SIZE >= size) {
+      Log(LOG_SUCCESS, "Found free blocks that can store %d blocks at %d", size,
+          start_block);
+      return start_block;
+    }
+  }
+
+  return 0;
+}
+
+int write_inode_or_data(blkid_t block_id, uint mode) {
+
+  if (block_id > superHead.size) {
+    err("block id exceeds the fs block length");
+    close_fd();
+    exit(-1);
+  }
+
+  goto_inode_data_bmap();
+
+  // nav to that block
+  fseek(super_fd, sizeof(uint) * block_id, SEEK_CUR);
+
+  fwrite(&mode, sizeof(uint), 1, super_fd);
+
+  return 0;
+}
+
+uint read_inode_or_data(blkid_t block_id) {
+
+  if (block_id > superHead.size) {
+    err("block id exceeds the fs block length");
+    close_fd();
+    exit(-1);
+  }
+
+  goto_inode_data_bmap();
+
+  // nav to that block
+  fseek(super_fd, sizeof(uint) * block_id, SEEK_CUR);
+
+  uint state;
+  fread(&state, sizeof(uint), 1, super_fd);
+
+  return state;
 }
