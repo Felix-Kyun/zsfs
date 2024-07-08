@@ -3,6 +3,7 @@
 #include "zsfs.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 FILE *super_fd = NULL, *fs_fd = NULL;
 Super_head superHead;
@@ -170,4 +171,27 @@ uint read_inode_or_data(blkid_t block_id) {
   fread(&state, sizeof(uint), 1, super_fd);
 
   return state;
+}
+
+int _zsfs_getattr(const char *path, struct stat *st) {
+
+  // check if its root
+  if (strcmp(path, "/") == 0) {
+
+    struct stat *inode_stat = get_inode_stat(0);
+
+    // memcpy(st, inode_stat, sizeof(struct stat));
+    *st = *inode_stat;
+
+  } else {
+    // the path is not root so transverse it accordingly
+  }
+
+  return 0;
+}
+
+struct stat *get_inode_stat(inode_id_t id) {
+  struct stat *st = calloc(1, sizeof(struct stat));
+
+  return st;
 }

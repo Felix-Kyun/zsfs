@@ -110,7 +110,88 @@ inode_id_t write_inode(inode i);
 // writes a root inode
 int write_root_inode(inode i);
 
+// gets the stat of a inode 
+struct stat *get_inode_stat(inode_id_t id);
 // file system access methods
+
+// well well well 
+// we need to figure out a way to sotre inode table
+// which i didnt know was a thing
+// so heres a simple implentation
+// using linear search 
+// performence is gonna be terrible at a large scale 
+// +----------+----------+
+// | inode_id | block_id |
+// +----------+----------+
+// |    int   |    int   |
+// +----------+----------+
+// |    1     |    50    |
+// +----------+----------+
+//           ...
+// +----------+----------+
+// |    n     |   193    |
+// +----------+----------+
+
+// how the data is actually stores inside super.bin
+// +---------------+-------------------+----+----+-----+---+
+// | ...other_data | inode_table_info | 01 | 02 | ... | n  |
+// +---------------+-------------------+----+----+-----+---+
+
+// heres the inode table indo
+typedef struct Inode_table_header {
+
+  // number of enteries 
+  uint count;
+
+} Inode_table_header ;
+
+typedef struct Inode_table_entry {
+
+  // inode id
+  inode_id_t id;
+
+  // block id
+  blkid_t bid;
+
+}Inode_table_entry;
+
+// for loading the whole table into memory for better performence
+typedef struct Inode_table {
+
+  // size of the table
+  uint count;
+
+  // the block from which the inode table begins in super.bin
+  blkid_t block;
+
+  // array of enteries
+  Inode_table_entry *enteries;
+
+} Inode_table;
+
+// methods to work with table
+
+// loads the inode table into memory
+Inode_table *load_inode_table(blkid_t bid);
+
+// write the inode table to the super.bin
+int write_inode_table(Inode_table *itab);
+
+// destroys the in memory inode table
+// only do after writing it back to memory
+// with write_inode_table()
+int destroy_inode_table(Inode_table *itab);
+
+// append a new entry to the inode table
+// used when creating a new inode
+int write_new_inode(inode_id_t id, blkid_t bid);
+
+// to get the block id from a given inode id
+// used when reading inodes
+blkid_t get_block_from_inode(inode_id_t id);
+
+// used to update the blkid when a inode is rewritten to a new location
+int modify_block_id(inode_id_t id, blkid_t new_bid);
 
 // getattr
 // static int z_getattr(const char *path, struct stat *st);
@@ -142,6 +223,18 @@ void zhelp();
 // INFO: its useless just like you :p
 void umount_handler(int code);
 
+#define __ZSFS_MAIN
+
+// fuse methods
+#ifdef __ZSFS_MAIN
+
+#include<fuse/fuse.h>
+
+int _zsfs_getattr(const char* path, struct stat *st);
+int _zsfs_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi );
+int _zsfs_read( const char *path, char *buffer, size_t size, off_t offset, struct fuse_file_info *fi );
+
+#endif
 
 #endif
 

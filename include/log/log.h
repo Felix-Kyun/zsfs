@@ -6,7 +6,7 @@
  * its intended to be pretty basic
  */
 
-#define log log_ // to avoid conflict with log() from math.h
+// #define log log_ // to avoid conflict with log() from math.h
 #define ok(message) log_(LOG_SUCCESS, message)
 #define done() ok("done")
 #define err(message) log_(LOG_ERROR, message)

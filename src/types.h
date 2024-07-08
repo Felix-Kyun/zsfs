@@ -17,7 +17,7 @@ typedef struct Super_head {
   char name[32]; // max 31 char file system name
   count_t size;
   count_t block_size;
-  blkid_t root_inode_id;
+  blkid_t root_inode_block;
   uchar __Padding[20]; // adjust it accordingly to align to 64 bytes
 } Super_head;
 
