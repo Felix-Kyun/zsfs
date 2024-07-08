@@ -9,6 +9,7 @@ FILE *super_fd = NULL, *fs_fd = NULL;
 Super_head superHead;
 Super_base superBase;
 Fs FS;
+Inode_table itable;
 
 int open_super(const char *path) {
   if ((super_fd = fopen(path, "rb+")) == NULL) {
@@ -194,4 +195,74 @@ struct stat *get_inode_stat(inode_id_t id) {
   struct stat *st = calloc(1, sizeof(struct stat));
 
   return st;
+}
+
+int load_inode_table() {
+
+  // goto inode table location
+  goto_itable();
+
+  Inode_table_header header;
+  fread(&header, sizeof(struct Inode_table_header), 1, super_fd);
+
+  itable.count = header.count;
+
+  itable.enteries = (struct Inode_table_entry *)calloc(
+      itable.count, sizeof(struct Inode_table_entry));
+
+  return 0;
+}
+
+int write_inode_table() {
+
+  // goto inode table location
+  goto_itable();
+
+  struct Inode_table_header header = {.count = itable.count};
+
+  // write the header containing all the enteries
+  fwrite(&header, sizeof(struct Inode_table_header), 1, super_fd);
+
+  // write all the enteries
+  fwrite(itable.enteries, sizeof(struct Inode_table_entry), itable.count,
+         super_fd);
+
+  return 0;
+}
+
+int write_new_inode(inode_id_t id, blkid_t bid) {
+  itable.count++;
+
+  itable.enteries = (struct Inode_table_entry *)realloc(
+      itable.enteries, sizeof(struct Inode_table_entry) * itable.count);
+
+  (itable.enteries[itable.count - 1]).id = id;
+  (itable.enteries[itable.count - 1]).bid = bid;
+
+  return 0;
+}
+
+blkid_t get_block_from_inode(inode_id_t id) {
+
+  // linear search inside the table
+  for (int i = 0; i < itable.count; i++) {
+    if ((itable.enteries[i]).id == id)
+      return (itable.enteries[i]).bid;
+  }
+
+  return 0;
+}
+
+int modify_block_id(inode_id_t id, blkid_t new_bid) {
+
+  //  linear search the inode id
+  for (int i = 0; i < itable.count; i++) {
+    if ((itable.enteries[i]).id == id) {
+
+      // do ur work here
+      (itable.enteries[i]).bid = new_bid;
+    }
+  }
+
+  return 0;
 }

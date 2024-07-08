@@ -170,17 +170,16 @@ typedef struct Inode_table {
 } Inode_table;
 
 // methods to work with table
+//
+#define goto_itable() fseek(super_fd, \
+        sizeof(struct Super_head) + 2 * (sizeof(unsigned int) * superHead.size), \
+        SEEK_SET);
 
 // loads the inode table into memory
-Inode_table *load_inode_table(blkid_t bid);
+int load_inode_table();
 
 // write the inode table to the super.bin
-int write_inode_table(Inode_table *itab);
-
-// destroys the in memory inode table
-// only do after writing it back to memory
-// with write_inode_table()
-int destroy_inode_table(Inode_table *itab);
+int write_inode_table();
 
 // append a new entry to the inode table
 // used when creating a new inode
