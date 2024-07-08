@@ -114,63 +114,7 @@ int write_root_inode(inode i);
 struct stat *get_inode_stat(inode_id_t id);
 // file system access methods
 
-// well well well 
-// we need to figure out a way to sotre inode table
-// which i didnt know was a thing
-// so heres a simple implentation
-// using linear search 
-// performence is gonna be terrible at a large scale 
-// +----------+----------+
-// | inode_id | block_id |
-// +----------+----------+
-// |    int   |    int   |
-// +----------+----------+
-// |    1     |    50    |
-// +----------+----------+
-//           ...
-// +----------+----------+
-// |    n     |   193    |
-// +----------+----------+
-
-// how the data is actually stores inside super.bin
-// +---------------+-------------------+----+----+-----+---+
-// | ...other_data | inode_table_info | 01 | 02 | ... | n  |
-// +---------------+-------------------+----+----+-----+---+
-
-// heres the inode table indo
-typedef struct Inode_table_header {
-
-  // number of enteries 
-  uint count;
-
-} Inode_table_header ;
-
-typedef struct Inode_table_entry {
-
-  // inode id
-  inode_id_t id;
-
-  // block id
-  blkid_t bid;
-
-}Inode_table_entry;
-
-// for loading the whole table into memory for better performence
-typedef struct Inode_table {
-
-  // size of the table
-  uint count;
-
-  // the block from which the inode table begins in super.bin
-  blkid_t block;
-
-  // array of enteries
-  Inode_table_entry *enteries;
-
-} Inode_table;
-
-// methods to work with table
-//
+// methods to work with inode table
 #define goto_itable() fseek(super_fd, \
         sizeof(struct Super_head) + 2 * (sizeof(unsigned int) * superHead.size), \
         SEEK_SET);
