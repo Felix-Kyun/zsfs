@@ -2,9 +2,12 @@
 // ./zsfs_super_alloc ./path/to/super.bin name size
 
 #include "../types.h"
+#include <iterator>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <time.h>
 
 // typedef struct Super_base {
 //   int *inode_data_bitmap;
@@ -35,11 +38,26 @@ int main(int argc, char **argv) {
 
   // write the data/indoe and free bitmap
   unsigned int zero = 0;
-  for (int i = 0; i < 2 * superHead.size; i++)
-    fwrite(&zero, sizeof(int), 1, super_fd);
+  fwrite(&zero, sizeof(int), 2 * superHead.size, super_fd);
 
   Inode_table_header header = {.count = 0};
   fwrite(&header, sizeof(struct Inode_table_header), 1, super_fd);
+
+  // writing root inode
+  load_inode_table();
+  write_new_inode(0, 0);
+  write_inode_table();
+
+  inode root = {
+      .mode = 0777 | S_IFDIR,
+      .ctime = time(NULL),
+      .mtime = time(NULL),
+      .atime = time(NULL),
+      .nlink = 2,
+      .inode_size = sizeof(struct inode),
+      .children_count = 2,
+      .dentry_size = 2,
+  };
 
   fclose(super_fd);
 

@@ -51,11 +51,11 @@ typedef struct inode {
   nlink_t nlink;
   // uid_t user_id;
   // gid_t group_id;
-  blksize_t st_blksize; 
-  blkcnt_t  st_blocks;  
-  // time_t atime;
-  // time_t mtime;
-  // time_t ctime;
+  // blksize_t st_blksize; 
+  // blkcnt_t  st_blocks;  
+  time_t atime;
+  time_t mtime;
+  time_t ctime;
 
   // internal code 
   inode_id_t inode_id;
@@ -67,7 +67,8 @@ typedef struct inode {
 
   // actual data info
   blkid_t data_blk;
-  blkcount_t blk_count;
+  // blkcount_t blk_count;
+  unsigned int data_size;
 
 } inode;
 

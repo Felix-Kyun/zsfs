@@ -222,11 +222,13 @@ void zhelp();
 // INFO: its useless just like you :p
 void umount_handler(int code);
 
-
 // fuse methods
+int init_fuse(char **new_argv);
 #ifdef __ZSFS_MAIN
 
 #include<fuse/fuse.h>
+
+// simply retuns the op struct
 
 int _zsfs_getattr(const char* path, struct stat *st);
 int _zsfs_readdir( const char *path, void *buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi );

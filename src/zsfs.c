@@ -1,5 +1,5 @@
 #include "zsfs.h"
-#include "./_zsfs_impl.c"
+#include "../include/log/log.h"
 #include <fuse/fuse.h>
 #include <getopt.h>
 #include <math.h>
@@ -9,8 +9,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#define __ZSFS_MAIN
 
 int main(int argc, char **argv) {
 
@@ -59,10 +57,7 @@ int main(int argc, char **argv) {
   // init the base
   read_super_base();
 
-  struct fuse_operations op = {
-      .getattr = _zsfs_getattr, .readdir = _zsfs_readdir, .read = _zsfs_read};
-
-  return fuse_main(2, new_argv, &op, NULL);
+  return init_fuse(new_argv);
 }
 
 void umount_handler(int code) {

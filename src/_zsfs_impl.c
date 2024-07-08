@@ -5,12 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 FILE *super_fd = NULL, *fs_fd = NULL;
 Super_head superHead;
 Super_base superBase;
 Fs FS;
 Inode_table itable;
+
+#ifdef __ZSFS_MAIN
+struct fuse_operations op = {
+    .getattr = _zsfs_getattr,
+    .readdir = _zsfs_readdir,
+    .read = _zsfs_read,
+};
+
+int init_fuse(char **new_argv) { return fuse_main(2, new_argv, &op, NULL); }
+#endif
 
 int open_super(const char *path) {
   if ((super_fd = fopen(path, "rb+")) == NULL) {
@@ -45,11 +56,8 @@ int read_super_base() {
   superBase.free_bitmap = (uint *)calloc(superHead.size, sizeof(uint));
 
   // read state from file
-  for (int i = 0; i < superHead.size; i++) {
-    fread(&superBase.inode_data_bitmap + i, sizeof(int), 1, super_fd);
-    fread(&superBase.free_bitmap + (i + superHead.size), sizeof(int), 1,
-          super_fd);
-  }
+  fread(superBase.inode_data_bitmap, sizeof(int), superHead.size, super_fd);
+  fread(superBase.free_bitmap, sizeof(int), superHead.size, super_fd);
 
   return 0;
 }
@@ -175,29 +183,6 @@ uint read_inode_or_data(blkid_t block_id) {
   return state;
 }
 
-int _zsfs_getattr(const char *path, struct stat *st) {
-
-  // check if its root
-  if (strcmp(path, "/") == 0) {
-
-    struct stat *inode_stat = get_inode_stat(0);
-
-    // memcpy(st, inode_stat, sizeof(struct stat));
-    *st = *inode_stat;
-
-  } else {
-    // the path is not root so transverse it accordingly
-  }
-
-  return 0;
-}
-
-struct stat *get_inode_stat(inode_id_t id) {
-  struct stat *st = calloc(1, sizeof(struct stat));
-
-  return st;
-}
-
 int load_inode_table() {
 
   // goto inode table location
@@ -206,13 +191,13 @@ int load_inode_table() {
   Inode_table_header header;
   fread(&header, sizeof(struct Inode_table_header), 1, super_fd);
 
-
   itable.count = header.count;
 
   itable.enteries = (struct Inode_table_entry *)calloc(
       itable.count, sizeof(struct Inode_table_entry));
 
-  fread(itable.enteries, sizeof(struct Inode_table_entry), itable.count, super_fd);
+  fread(itable.enteries, sizeof(struct Inode_table_entry), itable.count,
+        super_fd);
 
   return 0;
 }
@@ -270,3 +255,85 @@ int modify_block_id(inode_id_t id, blkid_t new_bid) {
 
   return 0;
 }
+
+int read_inode(inode_id_t id, inode *i) {
+
+  blkid_t bid = get_block_from_inode(id);
+
+  fseek(fs_fd, bid, SEEK_SET);
+  fread(i, sizeof(struct inode), 1, fs_fd);
+
+  return 0;
+}
+
+struct stat *get_inode_stat(inode_id_t id) {
+  struct stat *st = calloc(1, sizeof(struct stat));
+
+  inode i;
+  read_inode(id, &i);
+
+  // timing stuff
+  st->st_atime = i.atime;
+  st->st_ctime = i.ctime;
+  st->st_mtime = i.mtime;
+
+  st->st_blksize = BLOCK_SIZE;
+  st->st_blocks = i.blocks_used;
+
+  st->st_gid = getgid();
+  st->st_uid = getuid();
+
+  st->st_mode = i.mode;
+  st->st_nlink = i.nlink;
+  st->st_size = i.data_size;
+
+  return st;
+}
+
+inode_id_t write_inode(inode i) {}
+
+#ifdef __ZSFS_MAIN
+
+int _zsfs_getattr(const char *path, struct stat *st) {
+
+  // check if its root
+  if (strcmp(path, "/") == 0) {
+
+    struct stat *inode_stat = get_inode_stat(0);
+
+    // memcpy(st, inode_stat, sizeof(struct stat));
+    *st = *inode_stat;
+
+  } else {
+    // the path is not root so transverse it accordingly
+  }
+
+  return 0;
+}
+
+int _zsfs_readdir(const char *path, void *buffer, fuse_fill_dir_t filler,
+                  off_t offset, struct fuse_file_info *fi) {
+
+  if (strcmp(path, "/") == 0) {
+
+    // root dir
+
+    // read dentry and add files accordingly
+    filler(buffer, ".", NULL, 0);
+    filler(buffer, "..", NULL, 0);
+
+  } else {
+
+    // handle the cases of other dir here
+  }
+
+  return 0;
+}
+
+int _zsfs_read(const char *path, char *buffer, size_t size, off_t offset,
+               struct fuse_file_info *fi) {
+
+  return 0;
+}
+
+#endif
