@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 FILE *super_fd = NULL, *fs_fd = NULL;
 Super_head superHead;
@@ -205,10 +206,13 @@ int load_inode_table() {
   Inode_table_header header;
   fread(&header, sizeof(struct Inode_table_header), 1, super_fd);
 
+
   itable.count = header.count;
 
   itable.enteries = (struct Inode_table_entry *)calloc(
       itable.count, sizeof(struct Inode_table_entry));
+
+  fread(itable.enteries, sizeof(struct Inode_table_entry), itable.count, super_fd);
 
   return 0;
 }

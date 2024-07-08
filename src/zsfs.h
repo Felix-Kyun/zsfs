@@ -222,7 +222,6 @@ void zhelp();
 // INFO: its useless just like you :p
 void umount_handler(int code);
 
-#define __ZSFS_MAIN
 
 // fuse methods
 #ifdef __ZSFS_MAIN

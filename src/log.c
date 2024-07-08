@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-void log(LogLevel level, const char *message) {
+void log_(LogLevel level, const char *message) {
   // level and color map
   char *color_code[LOG_MAX] = {COLOR_BLUE, COLOR_YELLOW, COLOR_RED,
                                COLOR_GREEN};

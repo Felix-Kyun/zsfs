@@ -38,6 +38,9 @@ int main(int argc, char **argv) {
   for (int i = 0; i < 2 * superHead.size; i++)
     fwrite(&zero, sizeof(int), 1, super_fd);
 
+  Inode_table_header header = {.count = 0};
+  fwrite(&header, sizeof(struct Inode_table_header), 1, super_fd);
+
   fclose(super_fd);
 
   return 0;
